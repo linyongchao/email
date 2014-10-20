@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * @Description:邮箱配置读取类
@@ -54,6 +57,22 @@ public final class EmailProperties {
 				// 获取jar包外的资源文件
 				InputStream is = new FileInputStream(ef);
 				pro.load(is);
+				// 增加转码处理，当properties中有中文时也可以正常处理
+				Set<Object> keyset = pro.keySet();
+				Iterator<Object> iter = keyset.iterator();
+				while (iter.hasNext()) {
+					String key = (String) iter.next();
+					String newValue = null;
+					try {
+						// 属性配置文件自身的编码
+						String propertiesFileEncode = "utf-8";
+						newValue = new String(pro.getProperty(key).getBytes(
+								"ISO-8859-1"), propertiesFileEncode);
+					} catch (UnsupportedEncodingException e) {
+						newValue = pro.getProperty(key);
+					}
+					pro.setProperty(key, newValue);
+				}
 			} catch (IOException e) {
 				System.err.println("获取email.properties文件信息失败" + e);
 			}
