@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -202,6 +203,10 @@ public class EmailService {
 		if (this.to.size() == 0) {
 			throw new NullPointerException("收件人地址不能为空");
 		}
+		InternetAddress[] toArray = getAddresses(this.to);
+		if (toArray.length == 0) {
+			throw new NullPointerException("收件人地址均不符合要求");
+		}
 		if (this.title == null || this.msg == null) {
 			throw new NullPointerException("title,msg均不能为空");
 		}
@@ -260,7 +265,6 @@ public class EmailService {
 		// 将邮件内容添加到message
 		message.setContent(multipart);
 		// 设置邮件接收者的地址
-		InternetAddress[] toArray = getAddresses(this.to);
 		message.addRecipients(Message.RecipientType.TO, toArray);
 		// 设置抄送
 		if (this.cc.size() > 0) {
@@ -288,6 +292,7 @@ public class EmailService {
 	 * @date 2018年9月3日 下午4:16:17
 	 */
 	private InternetAddress[] getAddresses(List<String> list) throws AddressException {
+		list = list.stream().filter(s -> s != null && s.contains("@")).collect(Collectors.toList());
 		InternetAddress[] array = new InternetAddress[list.size()];
 		for (int i = 0; i < list.size(); i++) {
 			array[i] = new InternetAddress(list.get(i));
