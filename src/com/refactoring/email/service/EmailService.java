@@ -77,7 +77,7 @@ public class EmailService {
 	 * @param password
 	 *            密码
 	 * @param smtp
-	 *            密码
+	 *            smtp
 	 * @param emailName
 	 *            别名
 	 * @return
@@ -113,6 +113,7 @@ public class EmailService {
 	 * 添加正文附图
 	 * 
 	 * @param contextImgs
+	 *            附图路径
 	 * @return
 	 * @author lin
 	 * @date 2018年9月3日 下午3:58:26
