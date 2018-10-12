@@ -4,11 +4,10 @@ import com.refactoring.email.service.EmailService;
 
 public class Test {
 	public static void main(String[] args) {
-		String msg = "this is a test";
 		try {
-			new EmailService().init("email", "pwd", "smtp.163.com", "别名").addAttachs("/Users/lin/1.jpg")
-					.addAttachs("/Users/lin/2.jpg").addContextImgs("/Users/lin/3.jpg", "/Users/lin/4.jpg")
-					.addContext("test", msg).addTo("linyongchaohappy@163.com").addTo("lycwork@126.com").send();
+			new EmailService().init("sendEmail", "pwd", "smtp", "port", true).addAlias("别名").addAttachs("附件 1 路径")
+					.addAttachs("附件 2 路径").addContextImgs("正文附图 1 路径", "正文附图 2 路径").addContext("标题", "正文")
+					.addTo("收件人 1 Email").addTo("收件人 2 Email").send();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

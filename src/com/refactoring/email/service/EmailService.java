@@ -1,5 +1,6 @@
 package com.refactoring.email.service;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,11 +31,17 @@ import com.refactoring.email.auth.EmailAuthenticator;
  * @date 2018年9月3日 下午3:51:10
  */
 public class EmailService {
+
+	private final String SSL_FACTORY = "javax.net.ssl.SSLSocketFactory";
+
 	// 基本配置
 	private String username;
 	private String password;
 	private String smtp;
-	private String emailName;
+	private String port;
+	private boolean isSSL = false;
+	// 别名
+	private String alias;
 	// 正文
 	private String title;
 	private String msg;
@@ -78,17 +85,57 @@ public class EmailService {
 	 *            密码
 	 * @param smtp
 	 *            smtp
-	 * @param emailName
-	 *            别名
+	 * @param port
+	 *            端口
 	 * @return
 	 * @author lin
-	 * @date 2018年9月3日 下午3:56:01
+	 * @date 2018年10月11日 下午2:52:03
 	 */
-	public EmailService init(String username, String password, String smtp, String emailName) {
+	public EmailService init(String username, String password, String smtp, String port) {
 		this.username = username;
 		this.password = password;
 		this.smtp = smtp;
-		this.emailName = emailName;
+		this.port = port;
+		return this;
+	}
+
+	/**
+	 * 初始化基本参数
+	 * 
+	 * @param username
+	 *            用户名
+	 * @param password
+	 *            密码
+	 * @param smtp
+	 *            smtp
+	 * @param port
+	 *            端口
+	 * @param isSSL
+	 *            是否开启SSL
+	 * @return
+	 * @author lin
+	 * @date 2018年10月11日 下午2:52:35
+	 */
+	public EmailService init(String username, String password, String smtp, String port, boolean isSSL) {
+		this.username = username;
+		this.password = password;
+		this.smtp = smtp;
+		this.port = port;
+		this.isSSL = isSSL;
+		return this;
+	}
+
+	/**
+	 * 添加别名
+	 * 
+	 * @param alias
+	 *            别名
+	 * @return
+	 * @author lin
+	 * @date 2018年10月11日 下午2:53:41
+	 */
+	public EmailService addAlias(String alias) {
+		this.alias = alias;
 		return this;
 	}
 
@@ -215,6 +262,14 @@ public class EmailService {
 		Properties props = new Properties();
 		props.put("mail.smtp.host", smtp);
 		props.put("mail.smtp.auth", "true");
+		if (port != null) {
+			props.setProperty("mail.smtp.port", port);
+		}
+		if (isSSL) {
+			props.setProperty("mail.smtp.socketFactory.class", SSL_FACTORY);
+			props.setProperty("mail.smtp.socketFactory.fallback", "false");
+		}
+
 		// 进行邮件服务用户认证
 		Authenticator auth = new EmailAuthenticator(username, password);
 		// 设置session和邮件服务器进行通讯
@@ -222,8 +277,8 @@ public class EmailService {
 		MimeMessage message = new MimeMessage(session);
 		// 设置邮件发送者的地址
 		InternetAddress from = new InternetAddress(username);
-		if (emailName != null) {
-			from.setPersonal(MimeUtility.encodeText(emailName));
+		if (alias != null) {
+			from.setPersonal(MimeUtility.encodeText(alias));
 		}
 		message.setFrom(from);
 		// 设置邮件主题
@@ -239,9 +294,14 @@ public class EmailService {
 			multipart.setSubType("related");
 			// 添加附件
 			for (int i = 0; i < contextImg.size(); i++) {
+				String path = contextImg.get(i);
 				MimeBodyPart attach = new MimeBodyPart();
-				DataHandler dataHandler = new DataHandler(new FileDataSource(contextImg.get(i)));
+				DataHandler dataHandler = new DataHandler(new FileDataSource(path));
 				attach.setDataHandler(dataHandler);
+				String[] names = path.split(File.separator);
+				if (names.length > 1) {
+					attach.setFileName(names[names.length - 1]);
+				}
 				attach.setContentID("img" + i);
 				multipart.addBodyPart(attach);
 				msg += "<img src='cid:img" + i + "'>";
@@ -256,6 +316,10 @@ public class EmailService {
 				MimeBodyPart attach = new MimeBodyPart();
 				DataHandler dataHandler = new DataHandler(new FileDataSource(string));
 				attach.setDataHandler(dataHandler);
+				String[] names = string.split(File.separator);
+				if (names.length > 1) {
+					attach.setFileName(names[names.length - 1]);
+				}
 				multipart.addBodyPart(attach);
 			}
 		}
